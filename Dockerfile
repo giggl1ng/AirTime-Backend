@@ -6,5 +6,5 @@ RUN mvn clean package -DskipTests
 # Step 2: Run
 FROM eclipse-temurin:17-jre
 COPY --from=build /target/AirTimeBackEnd-0.0.1-SNAPSHOT.jar app.jar
-EXPOSE 8080
-ENTRYPOINT ["java", "-jar", "app.jar"]
+EXPOSE 10000
+ENTRYPOINT ["java", "-jar", "app.jar", "--server.port=10000"]
