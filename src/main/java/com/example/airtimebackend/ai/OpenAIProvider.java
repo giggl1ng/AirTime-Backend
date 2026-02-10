@@ -14,7 +14,7 @@ public class OpenAIProvider implements AIProvider {
 
     // 🔑 PUT YOUR OPENROUTER API KEY HERE
     // This grabs the key from the environment (Safe!)
-    @Value("${OPENROUTER_API_KEY}")
+    @Value("${openrouter.api-key}")
     private String API_KEY;
     private static final String API_URL = "https://openrouter.ai/api/v1/chat/completions";
     private final ObjectMapper objectMapper = new ObjectMapper();
@@ -28,6 +28,11 @@ public class OpenAIProvider implements AIProvider {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.setBearerAuth(API_KEY);
+
+        // DEBUG LOGGING
+        System.out.println("🔑 API_KEY is null: " + (API_KEY == null));
+        System.out.println("🔑 API_KEY is empty: " + (API_KEY != null && API_KEY.isEmpty()));
+        System.out.println("🔑 API_KEY length: " + (API_KEY != null ? API_KEY.length() : "NULL"));
 
         Map<String, Object> requestBody = new HashMap<>();
         requestBody.put("model", "openrouter/aurora-alpha");
@@ -292,4 +297,5 @@ public class OpenAIProvider implements AIProvider {
                 )
         );
     }
+
 }
