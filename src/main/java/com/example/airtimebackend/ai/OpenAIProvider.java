@@ -57,16 +57,45 @@ public class OpenAIProvider implements AIProvider {
 
             System.out.println("✅ Received response from OpenRouter");
 
-            JsonNode rootNode = objectMapper.readTree(response.getBody());
-            String aiResponse = rootNode
-                    .path("choices")
-                    .get(0)
-                    .path("message")
-                    .path("content")
-                    .asText();
+        JsonNode rootNode = objectMapper.readTree(response.getBody());
 
-            System.out.println("📝 AI Response: " + aiResponse);
-            return parseAIResponse(aiResponse, text);
+        // DEBUG: Print full response to see what OpenRouter is sending
+        System.out.println("🔍 Full API Response: " + response.getBody());
+        
+        // Safely navigate the response structure
+        JsonNode choicesNode = rootNode.path("choices");
+        if (choicesNode.isMissingNode() || !choicesNode.isArray() || choicesNode.size() == 0) {
+            System.err.println("❌ No choices array found in API response");
+            System.err.println("❌ Response was: " + response.getBody());
+            return getFallbackResponse(text);
+        }
+
+        JsonNode firstChoice = choicesNode.get(0);
+        if (firstChoice == null || firstChoice.isMissingNode()) {
+            System.err.println("❌ First choice is null or missing");
+            return getFallbackResponse(text);
+        }
+        
+        JsonNode messageNode = firstChoice.path("message");
+        if (messageNode.isMissingNode()) {
+            System.err.println("❌ No message node found in choice");
+            return getFallbackResponse(text);
+        }
+        
+        JsonNode contentNode = messageNode.path("content");
+        if (contentNode.isMissingNode() || contentNode.isNull()) {
+            System.err.println("❌ No content found in message");
+            return getFallbackResponse(text);
+        }
+
+        String aiResponse = contentNode.asText();
+        if (aiResponse == null || aiResponse.trim().isEmpty()) {
+            System.err.println("❌ AI response is empty");
+            return getFallbackResponse(text);
+        }
+
+        System.out.println("📝 AI Response: " + aiResponse);
+        return parseAIResponse(aiResponse, text);
 
         } catch (Exception e) {
             System.err.println("❌ Error calling OpenRouter API: " + e.getMessage());
@@ -435,4 +464,5 @@ private List<String> parseStringArraySafe(JsonNode jsonNode, String fieldName, S
     }
 
 }
+
 
